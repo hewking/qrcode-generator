@@ -1,8 +1,8 @@
 import { QRCodeSVG } from "qrcode.react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download } from "lucide-react";
+import { Download, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QRCodeDisplayProps {
@@ -12,9 +12,9 @@ interface QRCodeDisplayProps {
 
 const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleDownload = () => {
-
     const qrCodeElement = document.querySelector('.qr-code-svg');
     if (!qrCodeElement) {
       console.error('QR Code element not found');
@@ -53,6 +53,49 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
     img.src = URL.createObjectURL(svgBlob);
   };
 
+  const handleCopy = async () => {
+    const qrCodeElement = document.querySelector('.qr-code-svg');
+    if (!qrCodeElement) {
+      console.error('QR Code element not found');
+      return;
+    }
+
+    const svgData = new XMLSerializer().serializeToString(qrCodeElement as SVGSVGElement);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size * 2;
+      canvas.height = size * 2;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            try {
+              // 创建 ClipboardItem 对象
+              const clipboardItem = new ClipboardItem({
+                'image/png': blob
+              });
+              // 复制到剪贴板
+              await navigator.clipboard.write([clipboardItem]);
+              setIsCopied(true);
+              setTimeout(() => setIsCopied(false), 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
+          }
+        }, 'image/png');
+      }
+    };
+    img.src = URL.createObjectURL(svgBlob);
+  };
+
   if (!value) return null;
 
   return (
@@ -75,19 +118,38 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
 
       <div
         className={cn(
-          "absolute inset-0 flex items-center justify-center",
+          "absolute inset-0 flex items-center justify-center gap-3",
           "bg-background/90 backdrop-blur-sm rounded-lg",
           "transition-all duration-300 ease-out",
           isHovered ? "opacity-100 scale-100" : "opacity-0 scale-98 invisible"
         )}
       >
         <Button
+          onClick={handleCopy}
+          className="gap-2"
+          size="lg"
+          variant={isCopied ? "secondary" : "default"}
+        >
+          {isCopied ? (
+            <>
+              <Check className="w-4 h-4" />
+              已复制
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              复制图片
+            </>
+          )}
+        </Button>
+        <Button
           onClick={handleDownload}
           className="gap-2"
           size="lg"
+          variant="outline"
         >
           <Download className="w-4 h-4" />
-          下载二维码
+          下载图片
         </Button>
       </div>
     </div>
