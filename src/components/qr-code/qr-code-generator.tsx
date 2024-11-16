@@ -32,42 +32,45 @@ const QRCodeGenerator = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-2xl mx-auto relative px-6">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse delay-150" />
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-8">
+      <div className="w-full max-w-2xl mx-auto relative">
+        <div className="absolute -top-20 -left-20 w-40 h-40 sm:-top-40 sm:-left-40 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-20 -right-20 w-40 h-40 sm:-bottom-40 sm:-right-40 sm:w-80 sm:h-80 bg-gradient-to-br from-blue-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse delay-150" />
         
-        <div className="text-center mb-16 space-y-4">
-          <h1 className="text-5xl font-bold tracking-tight text-foreground animate-gradient">
+        <div className="text-center mb-8 sm:mb-16 space-y-3 sm:space-y-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-gradient">
             二维码生成器
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
             简单、快速地生成二维码
           </p>
         </div>
         
         <Card className="relative overflow-hidden border-muted/50">
-          <CardHeader>
-            <CardTitle>生成二维码</CardTitle>
-            <CardDescription>输入文本或链接，即可生成对应的二维码</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-xl sm:text-2xl">生成二维码</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              输入文本或链接，即可生成对应的二维码
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="space-y-6">
+          <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+            <div className="space-y-4 sm:space-y-6">
               <Textarea
                 value={text}
                 onChange={handleInputChange}
                 placeholder="输入或粘贴文本..."
                 rows={4}
-                className="resize-none"
+                className="resize-none text-base sm:text-lg"
               />
               
-              <div className="flex gap-3 justify-end">
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
                 <Button 
                   onClick={handlePaste}
-                  className="group relative"
+                  className="group relative w-full sm:w-auto"
                   variant="default"
+                  size="lg"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <ClipboardCopy className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" />
                     {copied ? '已粘贴' : '粘贴'}
                   </span>
@@ -86,9 +89,10 @@ const QRCodeGenerator = () => {
                 <Button 
                   variant="outline" 
                   onClick={handleClear}
-                  className="group"
+                  className="group w-full sm:w-auto"
+                  size="lg"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <Trash2 className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" />
                     清除
                   </span>
