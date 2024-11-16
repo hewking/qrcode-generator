@@ -1,5 +1,5 @@
 import { QRCodeSVG } from "qrcode.react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Download } from "lucide-react";
@@ -12,16 +12,18 @@ interface QRCodeDisplayProps {
 
 const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const qrRef = useRef<SVGSVGElement>(null);
 
   const handleDownload = () => {
-    if (!qrRef.current) return;
 
-    // 创建 SVG blob
-    const svgData = new XMLSerializer().serializeToString(qrRef.current);
+    const qrCodeElement = document.querySelector('.qr-code-svg');
+    if (!qrCodeElement) {
+      console.error('QR Code element not found');
+      return;
+    }
+
+    const svgData = new XMLSerializer().serializeToString(qrCodeElement as SVGSVGElement);
     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
     
-    // 转换为图片
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -30,12 +32,10 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
       const ctx = canvas.getContext('2d');
       
       if (ctx) {
-        // 设置白色背景
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
-        // 下载 PNG
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
@@ -64,11 +64,11 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
       <Card className="flex justify-center p-8 transition-all duration-300 ease-out group-hover:border-primary/20">
         <div className="relative bg-background rounded-xl p-6 shadow-sm transition-transform duration-300 ease-out group-hover:scale-[1.02]">
           <QRCodeSVG 
-            ref={qrRef}
             value={value} 
             size={size} 
             level="H" 
             includeMargin={true}
+            className="qr-code-svg"
           />
         </div>
       </Card>
