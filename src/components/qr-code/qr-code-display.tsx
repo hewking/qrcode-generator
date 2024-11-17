@@ -14,8 +14,17 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [canShare, setCanShare] = useState(false);
   
   useEffect(() => {
+    // 检查是否支持分享功能
+    setCanShare(
+      typeof navigator !== 'undefined' && 
+      'share' in navigator && 
+      typeof navigator.share === 'function'
+    );
+    
+    // 检测移动设备
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
     };
@@ -106,7 +115,7 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
 
   const handleShare = async () => {
     try {
-      if (navigator.share) {
+      if (typeof navigator !== 'undefined' && 'share' in navigator) {
         const canvas = document.createElement('canvas');
         const qrCodeElement = document.querySelector('.qr-code-svg');
         if (!qrCodeElement) return;
@@ -128,11 +137,15 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
             canvas.toBlob(async (blob) => {
               if (blob) {
                 const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-                await navigator.share({
-                  title: '分享二维码',
-                  text: '扫描二维码查看内容',
-                  files: [file]
-                });
+                try {
+                  await navigator.share({
+                    title: '分享二维码',
+                    text: '扫描二维码查看内容',
+                    files: [file]
+                  });
+                } catch (shareError) {
+                  console.error('Share failed:', shareError);
+                }
               }
             }, 'image/png');
           }
@@ -200,10 +213,9 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
                 <Download className="w-4 h-4" />
                 下载
               </Button>
-              {/* @ts-ignore */}
-              {navigator.share && (
+              {canShare && (
                 <Button
-                  onClick={() => handleShare()}
+                  onClick={handleShare}
                   variant="secondary"
                   size="sm"
                   className="gap-2"
@@ -249,7 +261,7 @@ const QRCodeDisplay = ({ value, size = 200 }: QRCodeDisplayProps) => {
               <Download className="w-4 h-4" />
               下载
             </Button>
-            {navigator.share && (
+            {canShare && (
               <Button
                 onClick={handleShare}
                 variant="secondary"
