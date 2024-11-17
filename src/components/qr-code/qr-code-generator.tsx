@@ -9,10 +9,12 @@ import { handleClipboardRead } from '@/lib/utils'
 import { ClipboardCopy, Trash2 } from 'lucide-react'
 import { QRHistory } from './qr-history'
 import { HistoryService } from '@/lib/services/history.service'
+import { useUserId } from '@/hooks/useUserId'
 
 const QRCodeGenerator = () => {
   const [text, setText] = useState('')
   const [copied, setCopied] = useState(false)
+  const userId = useUserId();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value)
@@ -34,11 +36,11 @@ const QRCodeGenerator = () => {
   }
 
   const handleGenerate = async () => {
-    if (!text) return
+    if (!text || !userId) return
 
     try {
       await HistoryService.createHistory({
-        user_id: null,
+        user_id: userId,
         content: text,
         title: text.slice(0, 50),
         type: text.startsWith('http') ? 'url' : 'text'
@@ -53,7 +55,7 @@ const QRCodeGenerator = () => {
       const timeoutId = setTimeout(handleGenerate, 1000)
       return () => clearTimeout(timeoutId)
     }
-  }, [text])
+  }, [text, userId])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -135,7 +137,7 @@ const QRCodeGenerator = () => {
         
         <div className="mt-8">
           <QRHistory
-            userId={null}
+            userId={userId}
             onSelect={(content) => setText(content)}
           />
         </div>

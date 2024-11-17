@@ -12,4 +12,8 @@ export type QRHistory = {
   created_at: string
   title: string | null
   type: 'text' | 'url' | 'other'
+  is_favorite?: boolean
+  view_count?: number
+  last_viewed_at?: string | null
+  deleted_at?: string | null
 } 

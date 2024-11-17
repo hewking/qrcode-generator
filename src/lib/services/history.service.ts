@@ -6,7 +6,10 @@ export class HistoryService {
     try {
       const { data: history, error } = await supabase
         .from('qr_history')
-        .insert([data])
+        .insert([{
+          ...data,
+          user_id: data.user_id || null
+        }])
         .select()
         .single()
 
@@ -20,11 +23,18 @@ export class HistoryService {
 
   static async getHistories(userId: string | null) {
     try {
-      const { data: histories, error } = await supabase
+      let query = supabase
         .from('qr_history')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false })
+
+      if (userId) {
+        query = query.eq('user_id', userId)
+      } else {
+        query = query.is('user_id', null)
+      }
+
+      const { data: histories, error } = await query
 
       if (error) throw error
       return histories
