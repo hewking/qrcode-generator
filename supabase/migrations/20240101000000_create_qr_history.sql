@@ -1,3 +1,9 @@
+-- 删除现有的表和类型
+-- DROP VIEW IF EXISTS active_qr_history;
+-- DROP TABLE IF EXISTS public.qr_history;
+-- DROP TYPE IF EXISTS qr_type;
+-- DROP FUNCTION IF EXISTS update_updated_at_column();
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

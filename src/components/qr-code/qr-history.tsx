@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Clock, Trash2, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { HistoryService } from "@/lib/services/history.service";
 import type { QRHistory as QRHistoryType } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -14,8 +14,12 @@ interface QRHistoryProps {
 export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
   const [histories, setHistories] = useState<QRHistoryType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(0);
 
   // 检测移动设备
   useEffect(() => {
@@ -27,28 +31,43 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    loadHistories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
-
-  const loadHistories = async () => {
+  const loadHistories = useCallback(async (pageNum: number, append = false) => {
     try {
-      setLoading(true);
-      const data = await HistoryService.getHistories(userId);
-      setHistories(data || []);
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+
+      const { histories: newHistories, hasMore: more, total: totalCount } = 
+        await HistoryService.getHistories(userId, pageNum);
+
+      setHistories(prev => append ? [...prev, ...newHistories] : newHistories);
+      setHasMore(more);
+      setTotal(totalCount);
     } catch (error) {
       console.error("Failed to load histories:", error);
-      setHistories([]);
+      if (!append) setHistories([]);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  }, [userId]);
+
+  useEffect(() => {
+    setPage(1);
+    loadHistories(1);
+  }, [userId, loadHistories]);
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await loadHistories(nextPage, true);
   };
 
   const handleDelete = async (id: string) => {
     try {
       await HistoryService.deleteHistory(id);
       setHistories(histories.filter((h) => h.id !== id));
+      setTotal(prev => prev - 1);
     } catch (error) {
       console.error("Failed to delete history:", error);
     }
@@ -61,7 +80,7 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -76,7 +95,7 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
 
   return (
     <div className="space-y-4">
-      {/* 移动端标题栏 */}
+      {/* 标题栏 */}
       <div 
         className={cn(
           "flex items-center justify-between",
@@ -89,7 +108,7 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="w-4 h-4" />
           <span>历史记录</span>
-          <span className="text-sm">({histories.length})</span>
+          <span className="text-sm">({total})</span>
         </div>
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={toggleExpand}>
@@ -148,6 +167,21 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
             </div>
           </Card>
         ))}
+
+        {/* 加载更多按钮 */}
+        {hasMore && (
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : null}
+            {loadingMore ? "加载中..." : "加载更多"}
+          </Button>
+        )}
       </div>
 
       {/* 移动端展开/收起提示 */}
@@ -156,7 +190,7 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
           onClick={toggleExpand}
           className="w-full text-center py-2 text-sm text-muted-foreground hover:text-foreground"
         >
-          查看更多历史记录
+          查看更多历史记录 ({total})
         </button>
       )}
     </div>

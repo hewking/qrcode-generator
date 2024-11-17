@@ -24,27 +24,36 @@ export class HistoryService {
     }
   }
 
-  static async getHistories(userId: string | null) {
+  static async getHistories(userId: string | null, page = 1, limit = 5) {
     try {
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
       let query = supabase
         .from('qr_history')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (userId) {
-        query = query.eq('user_id', userId)
+        query = query.eq('user_id', userId);
       }
 
-      const { data: histories, error } = await query
+      const { data: histories, error, count } = await query;
 
       if (error) {
-        console.error('Supabase error:', error)
-        throw error
+        console.error('Supabase error:', error);
+        throw error;
       }
-      return histories
+      
+      return {
+        histories: histories || [],
+        total: count || 0,
+        hasMore: count ? from + limit < count : false
+      };
     } catch (error) {
-      console.error('Error fetching histories:', error)
-      throw error
+      console.error('Error fetching histories:', error);
+      throw error;
     }
   }
 
