@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -10,6 +10,10 @@ import { ClipboardCopy, Trash2 } from 'lucide-react'
 import { QRHistory } from './qr-history'
 import { HistoryService } from '@/lib/services/history.service'
 import { useUserId } from '@/hooks/useUserId'
+
+// 创建一个事件总线实例
+const historyEventBus = new EventTarget();
+export const HISTORY_UPDATED = 'historyUpdated';
 
 const QRCodeGenerator = () => {
   const [text, setText] = useState('')
@@ -35,27 +39,28 @@ const QRCodeGenerator = () => {
     }
   }
 
-  const handleGenerate = async () => {
-    if (!text || !userId) return
-
-    try {
-      await HistoryService.createHistory({
-        user_id: userId,
-        content: text,
-        title: text.slice(0, 50),
-        type: text.startsWith('http') ? 'url' : 'text'
-      })
-    } catch (error) {
-      console.error('Failed to save history:', error)
+  // 处理键盘事件
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // 当按下回车键且没有按住 Shift 键时
+    if (e.key === 'Enter' && !e.shiftKey && text.trim()) {
+      e.preventDefault() // 阻止默认的换行行为
+      try {
+        const newHistory = await HistoryService.createHistory({
+          user_id: userId,
+          content: text,
+          title: text.slice(0, 50),
+          type: text.startsWith('http') ? 'url' : 'text'
+        })
+        
+        // 触发历史记录更新事件
+        historyEventBus.dispatchEvent(new CustomEvent(HISTORY_UPDATED, {
+          detail: newHistory
+        }));
+      } catch (error) {
+        console.error('Failed to save history:', error)
+      }
     }
   }
-
-  useEffect(() => {
-    if (text) {
-      const timeoutId = setTimeout(handleGenerate, 1000)
-      return () => clearTimeout(timeoutId)
-    }
-  }, [text, userId])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -76,7 +81,7 @@ const QRCodeGenerator = () => {
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-xl sm:text-2xl">生成二维码</CardTitle>
             <CardDescription className="text-sm sm:text-base">
-              输入文本或链接，即可生成对应的二维码
+              输入文本或链接，按回车键保存
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
@@ -84,7 +89,8 @@ const QRCodeGenerator = () => {
               <Textarea
                 value={text}
                 onChange={handleInputChange}
-                placeholder="输入或粘贴文本..."
+                onKeyDown={handleKeyDown}
+                placeholder="输入或粘贴文本，按回车保存..."
                 rows={4}
                 className="resize-none text-base sm:text-lg"
               />
@@ -99,17 +105,6 @@ const QRCodeGenerator = () => {
                   <span className="flex items-center justify-center gap-2">
                     <ClipboardCopy className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" />
                     {copied ? '已粘贴' : '粘贴'}
-                  </span>
-                  <span className={`
-                    absolute -top-12 left-1/2 transform -translate-x-1/2 
-                    bg-popover text-popover-foreground text-sm px-3 py-1.5 rounded-lg
-                    transition-all duration-300 ease-out
-                    ${copied ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}
-                  `}>
-                    已复制到输入框
-                    <svg className="absolute h-2 w-4 text-popover -bottom-2 left-1/2 transform -translate-x-1/2" fill="currentColor" viewBox="0 0 16 8">
-                      <path d="M0 0H16L8 8L0 0Z" />
-                    </svg>
                   </span>
                 </Button>
                 <Button 
@@ -139,6 +134,8 @@ const QRCodeGenerator = () => {
           <QRHistory
             userId={userId}
             onSelect={(content) => setText(content)}
+            eventBus={historyEventBus}
+            eventName={HISTORY_UPDATED}
           />
         </div>
       </div>

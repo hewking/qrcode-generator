@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 interface QRHistoryProps {
   userId: string | null;
   onSelect: (content: string) => void;
+  eventBus: EventTarget;
+  eventName: string;
 }
 
-export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
+export const QRHistory = ({ userId, onSelect, eventBus, eventName }: QRHistoryProps) => {
   const [histories, setHistories] = useState<QRHistoryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -76,6 +78,22 @@ export const QRHistory = ({ userId, onSelect }: QRHistoryProps) => {
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
+
+  // 监听新记录
+  useEffect(() => {
+    const handleHistoryUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<QRHistoryType>;
+      if (customEvent.detail) {
+        setHistories(prev => [customEvent.detail, ...prev]);
+        setTotal(prev => prev + 1);
+      }
+    };
+
+    eventBus.addEventListener(eventName, handleHistoryUpdate);
+    return () => {
+      eventBus.removeEventListener(eventName, handleHistoryUpdate);
+    };
+  }, [eventBus, eventName]);
 
   if (loading) {
     return (
