@@ -63,82 +63,97 @@ const QRCodeGenerator = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-8">
-      <div className="w-full max-w-4xl mx-auto relative">
-        <div className="absolute -top-20 -left-20 w-40 h-40 sm:-top-40 sm:-left-40 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-20 -right-20 w-40 h-40 sm:-bottom-40 sm:-right-40 sm:w-80 sm:h-80 bg-gradient-to-br from-blue-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse delay-150" />
-        
-        <div className="text-center mb-8 sm:mb-16 space-y-3 sm:space-y-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-gradient">
-            二维码生成器
-          </h1>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
-            简单、快速地生成二维码
-          </p>
-        </div>
-        
-        <Card className="relative overflow-hidden border-muted/50">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-xl sm:text-2xl">生成二维码</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              输入文本或链接，按回车键保存
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-            <div className="space-y-4 sm:space-y-6">
-              <Textarea
-                value={text}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder="输入或粘贴文本，按回车保存..."
-                rows={4}
-                className="resize-none text-base sm:text-lg"
-              />
-              
-              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-                <Button 
-                  onClick={handlePaste}
-                  className="group relative w-full sm:w-auto"
-                  variant="default"
-                  size="lg"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <ClipboardCopy className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" />
-                    {copied ? '已粘贴' : '粘贴'}
-                  </span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={handleClear}
-                  className="group w-full sm:w-auto"
-                  size="lg"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <Trash2 className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" />
-                    清除
-                  </span>
-                </Button>
-              </div>
-            </div>
-
-            <div className={`
-              transition-all duration-500 ease-out
-              ${text ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
-            `}>
-              <QRCodeDisplay value={text} />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <div className="mt-8">
-          <QRHistory
-            userId={userId}
-            onSelect={(content) => setText(content)}
-            eventBus={historyEventBus}
-            eventName={HISTORY_UPDATED}
-          />
+    <div className="min-h-screen w-full flex flex-col">
+      {/* 固定在顶部的标题部分 */}
+      <div className="w-full bg-background/95 backdrop-blur-sm sticky top-0 z-50 border-b">
+        <div className="container mx-auto px-4 py-4 sm:py-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-gradient">
+              二维码生成器
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              简单、快速地生成二维码
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* 主要内容区域 */}
+      <main className="flex-1 w-full">
+        <div className="container mx-auto px-4 py-6 sm:py-8 max-w-4xl">
+          {/* 装饰背景 */}
+          <div className="fixed inset-0 -z-10 overflow-hidden">
+            <div className="absolute -top-40 -left-40 w-80 h-80 bg-purple-200/20 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl animate-pulse delay-150" />
+          </div>
+
+          {/* 生成器卡片 */}
+          <Card className="relative overflow-hidden border-muted/50 mb-8">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-xl sm:text-2xl">生成二维码</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                输入文本或链接，按回车键保存
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 space-y-6">
+              <div className="space-y-4">
+                <Textarea
+                  value={text}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="输入或粘贴文本，按回车保存..."
+                  rows={4}
+                  className="resize-none text-base"
+                />
+                
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                  <Button 
+                    onClick={handlePaste}
+                    className="w-full sm:w-auto"
+                    variant="default"
+                    size="lg"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <ClipboardCopy className="w-4 h-4" />
+                      {copied ? '已粘贴' : '粘贴'}
+                    </span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleClear}
+                    className="w-full sm:w-auto"
+                    size="lg"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <Trash2 className="w-4 h-4" />
+                      清除
+                    </span>
+                  </Button>
+                </div>
+              </div>
+
+              {text && (
+                <div className="transition-all duration-500 ease-out">
+                  <QRCodeDisplay value={text} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 历史记录部分 */}
+          <div className="relative">
+            <QRHistory
+              userId={userId}
+              onSelect={(content) => setText(content)}
+              eventBus={historyEventBus}
+              eventName={HISTORY_UPDATED}
+            />
+          </div>
+        </div>
+      </main>
+
+      {/* 底部留白 */}
+      <div className="h-16 sm:h-24" />
     </div>
   )
 }
