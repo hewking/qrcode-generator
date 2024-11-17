@@ -8,12 +8,15 @@ export class HistoryService {
         .from('qr_history')
         .insert([{
           ...data,
-          user_id: data.user_id || null
+          user_id: data.user_id
         }])
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
       return history
     } catch (error) {
       console.error('Error creating history:', error)
@@ -30,13 +33,14 @@ export class HistoryService {
 
       if (userId) {
         query = query.eq('user_id', userId)
-      } else {
-        query = query.is('user_id', null)
       }
 
       const { data: histories, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
       return histories
     } catch (error) {
       console.error('Error fetching histories:', error)

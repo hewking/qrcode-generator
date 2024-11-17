@@ -7,7 +7,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 
 export type QRHistory = {
   id: string
-  user_id: string | null
+  user_id: string
   content: string
   created_at: string
   title: string | null
