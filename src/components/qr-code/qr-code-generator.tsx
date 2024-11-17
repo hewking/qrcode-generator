@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import QRCodeDisplay from './qr-code-display'
 import { handleClipboardRead } from '@/lib/utils'
 import { ClipboardCopy, Trash2 } from 'lucide-react'
+import { QRHistory } from './qr-history'
+import { HistoryService } from '@/lib/services/history.service'
 
 const QRCodeGenerator = () => {
   const [text, setText] = useState('')
@@ -31,9 +33,31 @@ const QRCodeGenerator = () => {
     }
   }
 
+  const handleGenerate = async () => {
+    if (!text) return
+
+    try {
+      await HistoryService.createHistory({
+        user_id: null,
+        content: text,
+        title: text.slice(0, 50),
+        type: text.startsWith('http') ? 'url' : 'text'
+      })
+    } catch (error) {
+      console.error('Failed to save history:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (text) {
+      const timeoutId = setTimeout(handleGenerate, 1000)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [text])
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-8">
-      <div className="w-full max-w-2xl mx-auto relative">
+      <div className="w-full max-w-4xl mx-auto relative">
         <div className="absolute -top-20 -left-20 w-40 h-40 sm:-top-40 sm:-left-40 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-20 -right-20 w-40 h-40 sm:-bottom-40 sm:-right-40 sm:w-80 sm:h-80 bg-gradient-to-br from-blue-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse delay-150" />
         
@@ -108,6 +132,13 @@ const QRCodeGenerator = () => {
             </div>
           </CardContent>
         </Card>
+        
+        <div className="mt-8">
+          <QRHistory
+            userId={null}
+            onSelect={(content) => setText(content)}
+          />
+        </div>
       </div>
     </div>
   )
