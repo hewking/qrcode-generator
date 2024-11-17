@@ -46,7 +46,7 @@ const QRCodeGenerator = () => {
       e.preventDefault() // 阻止默认的换行行为
       try {
         const newHistory = await HistoryService.createHistory({
-          user_id: userId,
+          user_id: userId ?? '',
           content: text,
           title: text.slice(0, 50),
           type: text.startsWith('http') ? 'url' : 'text'
