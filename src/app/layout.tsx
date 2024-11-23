@@ -1,4 +1,6 @@
 import '@/app/globals.css'  // 确保这行在 layout.tsx 顶部
+import { ThemeProvider } from "@/components/theme/theme-provider"
+import { ThemeToggle } from "@/components/theme/theme-toggle"
 
 export const metadata = {
   title: 'Next.js',
@@ -11,8 +13,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="zh" suppressHydrationWarning>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ThemeToggle />
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

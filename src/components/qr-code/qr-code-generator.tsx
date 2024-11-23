@@ -10,6 +10,7 @@ import { ClipboardCopy, Trash2 } from 'lucide-react'
 import { QRHistory } from './qr-history'
 import { HistoryService } from '@/lib/services/history.service'
 import { useUserId } from '@/hooks/useUserId'
+import { ThemeToggle } from '@/components/theme/theme-toggle'
 
 // 创建一个事件总线实例
 const historyEventBus = new EventTarget();
@@ -64,17 +65,29 @@ const QRCodeGenerator = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col">
-      {/* 固定在顶部的标题部分 */}
+      {/* 固定在顶部的导航栏 */}
       <div className="w-full bg-background/95 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto px-4 py-4 sm:py-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-gradient">
-              二维码生成器
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              简单、快速地生成二维码
-            </p>
+          <div className="flex items-center justify-between mb-4">
+            {/* 左侧空白 */}
+            <div className="w-10" />
+            
+            {/* 中间标题 */}
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-gradient">
+                二维码生成器
+              </h1>
+            </div>
+            
+            {/* 右侧主题切换按钮 */}
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
           </div>
+          
+          <p className="text-sm sm:text-base text-muted-foreground text-center">
+            简单、快速地生成二维码
+          </p>
         </div>
       </div>
 
